@@ -1,0 +1,488 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1580,
+        -480
+      ],
+      "id": "d466e0c4-989d-42c2-bbc7-73bbb24e831d",
+      "name": "When chat message received",
+      "webhookId": "5b084a85-be2c-452c-99fe-e0b28430a17d"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1S7GW8sdlXJfbCHIwR-tmz4n9tCAzhJzv",
+          "mode": "list",
+          "cachedResultName": "202401_NFs_Itens.csv",
+          "cachedResultUrl": "https://drive.google.com/file/d/1S7GW8sdlXJfbCHIwR-tmz4n9tCAzhJzv/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1020,
+        -600
+      ],
+      "id": "1093efce-2e19-46cf-a41f-747089796992",
+      "name": "NFs itens",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "6sdl5CyxMNkt4ilC",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1eoHRVUt_eKlLYFGDW9CVIJRo_p33kBn9",
+          "mode": "list",
+          "cachedResultName": "202401_NFs_Cabecalho.csv",
+          "cachedResultUrl": "https://drive.google.com/file/d/1eoHRVUt_eKlLYFGDW9CVIJRo_p33kBn9/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1020,
+        -340
+      ],
+      "id": "d97fbfee-fb0a-478f-99ca-65d428442fc5",
+      "name": "Nfs cabeçalhos",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "6sdl5CyxMNkt4ilC",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -660,
+        -340
+      ],
+      "id": "2fe3b043-b62b-45ab-8cdb-77a631f17b7a",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -660,
+        -600
+      ],
+      "id": "d7a1d6cd-dd9d-4afa-8a3a-28be38d60db5",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "['CHAVE DE ACESSO']",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -360,
+        -460
+      ],
+      "id": "4d3c4d25-cc2f-4252-8f31-b682e3c2d189",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Você é um assistente especializado em comunicação clara e natural com usuários de sistemas de análise de dados.\n\nSua tarefa é gerar uma reposta textual objetiva e amigável com base em:\n\n1. A pegunta feita pelo usuário\n2. O resultado exato da consulta, que pode conter números, nomes e ambos\n\n---\n\nPergunta do usuário: {{ $('When chat message received').item.json.chatInput }}\n\nResultado da consulta (formato JSON): {{ JSON.stringify($json) }}\n\nRegras obrigatórias para gerar a resposta:\n\n- Responda diretamente à pergunta com base **somente** nos dados fornecidos.\n- **Nunca invente informações** ou faça suposições.\n- Se o resultado tiver múltiplos campos (ex: nome da empresa e valor), use ambos corretamente na resposta.\n- Sempre formate os números corretamente:\n\n- Para valores monetários, use '\"R$\"' com **duas casas decimais** e separador de milhar\n    Ex: 'R$18.952.517,61'\n\n- Para contagem inteiras use separador de milhar \n    Ex: 'Foram emitidos 1.250 notas fiscais'\n\nSua reposta final deve sr apenas o texto, com clareza, precisão e formatação correta.\nNão use prefixos, markdown ou explicações adicionais.\n",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        840,
+        -160
+      ],
+      "id": "f08806de-f68e-45f9-92fa-043d12bae608",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "mistral:latest",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        720,
+        420
+      ],
+      "id": "ad120d27-ecb7-4ae7-9501-b7c43eb26b70",
+      "name": "Ollama Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "LUhhYyZOdOUS9gHR",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        360,
+        -100
+      ],
+      "id": "a525e072-5494-4e49-8f12-57cc4b3ce6cc",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "mySql": {
+          "id": "gbyendSGnX3ROeFe",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an SQL assitant for MySQL.\n\nYour task is to covert question written in Portuguese into valid and efficcient SQL queries for a single table named \"notas_fiscais\".\n\nThis table contains the following columns:\n\nchave_acesso, modelo, serie, numero, natureza_operacao, data_emissao, cpf_cnpj_emitente, razao_social_emitente, inscricao_estadual_emitente, uf_emitente, municipio_emitente, cnpj_destinatario, nome_destinatario, uf_destinatario, indicador_ie_destinatario, destino_operacao, consumidor_final, presenca_comprador, numero_produto, descricao_produto_servico, codigo_ncm, tipo_produto, cfop, quantidade, unidade, valor_unitario, valor_total, evento_mais_recente, data_evento_mais_recente, valor_nota_fiscal\n\nSemantic mapping:\n- \"nota fical\", \"nota\" , \"NF\" → refers to unique invoices identified by \"chave_acesso\"\n-  \"valor da nota\", \"valor total da nota fiscal\" → refers to \"valor_nota_fiscal\"\n- \"produto\" → refers to 'descricao_produto_servico'\n- \"quem vendeu mais\" → analyze 'razao_social_emitente' with 'SUM(valor_nota_fiscal)'\n\nImportant logic:\n- When counting invoices (notas fiscais), always use: \nCOUNT(DISTINCT chave_acesso)\n- Every SQL statement → must star with SELECT → never omit it.\n- Only return one single SQL query per answer.\n\nStrict instructions:\n- All data is in a **single table**. Do not JOINs.\n- Use **only the columns listed above**. Do not invet or assume columns.\n- Do not include SQL comments (e.g.'--...').\n- Do not use Markdown formatting (e.g. triple backticks).\n- Respond with **only the SQL query**,clean and ready to execute -  no explanations.\n\nUser question (in Portuguese):\n{{ $json.chatInput }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -200,
+        -80
+      ],
+      "id": "515f629c-a0b7-40fc-acf0-50238cf217d0",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "model": "mistral:latest",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        280
+      ],
+      "id": "36d6f4ed-7a82-4e12-8084-12dfcd425a0d",
+      "name": "Ollama Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "LUhhYyZOdOUS9gHR",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": {
+          "__rl": true,
+          "value": "notas_fiscais",
+          "mode": "list",
+          "cachedResultName": "notas_fiscais"
+        },
+        "dataMode": "defineBelow",
+        "columnToMatchOn": "chave_acesso",
+        "valueToMatchOn": "={{ $json['CHAVE DE ACESSO'] }}",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "modelo",
+              "value": "={{ $json.MODELO }}"
+            },
+            {
+              "column": "serie",
+              "value": "={{ $json['SÉRIE'] }}"
+            },
+            {
+              "column": "numero",
+              "value": "={{ $json['NÚMERO'] }}"
+            },
+            {
+              "column": "natureza_operacao",
+              "value": "={{ $json['NATUREZA DA OPERAÇÃO'] }}"
+            },
+            {
+              "column": "data_emissao",
+              "value": "={{ $json['DATA EMISSÃO'] }}"
+            },
+            {
+              "column": "cpf_cnpj_emitente",
+              "value": "={{ $json['CPF/CNPJ Emitente'] }}"
+            },
+            {
+              "column": "razao_social_emitente",
+              "value": "={{ $json['RAZÃO SOCIAL EMITENTE'] }}"
+            },
+            {
+              "column": "inscricao_estadual_emitente",
+              "value": "={{ $json['INSCRIÇÃO ESTADUAL EMITENTE'] }}"
+            },
+            {
+              "column": "uf_destinatario",
+              "value": "={{ $json['UF EMITENTE'] }}"
+            },
+            {
+              "column": "municipio_emitente",
+              "value": "={{ $json['MUNICÍPIO EMITENTE'] }}"
+            },
+            {
+              "column": "cnpj_destinatario",
+              "value": "={{ $json['CNPJ DESTINATÁRIO'] }}"
+            },
+            {
+              "column": "nome_destinatario",
+              "value": "={{ $json['NOME DESTINATÁRIO'] }}"
+            },
+            {
+              "column": "uf_destinatario",
+              "value": "={{ $json['UF DESTINATÁRIO'] }}"
+            },
+            {
+              "column": "indicador_ie_destinatario",
+              "value": "={{ $json['INDICADOR IE DESTINATÁRIO'] }}"
+            },
+            {
+              "column": "destino_operacao",
+              "value": "={{ $json['DESTINO DA OPERAÇÃO'] }}"
+            },
+            {
+              "column": "consumidor_final",
+              "value": "={{ $json['CONSUMIDOR FINAL'] }}"
+            },
+            {
+              "column": "presenca_comprador",
+              "value": "={{ $json['PRESENÇA DO COMPRADOR'] }}"
+            },
+            {
+              "column": "numero_produto",
+              "value": "={{ $json['NÚMERO PRODUTO'] }}"
+            },
+            {
+              "column": "descricao_produto_serviço",
+              "value": "={{ $json['DESCRIÇÃO DO PRODUTO/SERVIÇO'] }}"
+            },
+            {
+              "column": "codigo_ncm",
+              "value": "={{ $json['CÓDIGO NCM/SH'] }}"
+            },
+            {
+              "column": "cfop",
+              "value": "={{ $json.CFOP }}"
+            },
+            {
+              "column": "quantidade",
+              "value": "={{ $json.QUANTIDADE }}"
+            },
+            {
+              "column": "unidade",
+              "value": "={{ $json.UNIDADE }}"
+            },
+            {
+              "column": "valor_unitario",
+              "value": "={{ $json['VALOR UNITÁRIO'] }}"
+            },
+            {
+              "column": "valor_total",
+              "value": "={{ $json['VALOR TOTAL'] }}"
+            },
+            {
+              "column": "evento_mais_recente",
+              "value": "={{ $json['EVENTO MAIS RECENTE'] }}"
+            },
+            {
+              "column": "data_evento_mais_recente",
+              "value": "={{ $json['DATA/HORA EVENTO MAIS RECENTE'] }}"
+            },
+            {
+              "column": "valor_nota_fiscal",
+              "value": "={{ $json['VALOR NOTA FISCAL'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        -100,
+        -460
+      ],
+      "id": "e3fbffa6-8cbe-4683-9006-4b5b25d53349",
+      "name": "Update rows in a table",
+      "credentials": {
+        "mySql": {
+          "id": "gbyendSGnX3ROeFe",
+          "name": "MySQL account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Nfs cabeçalhos": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NFs itens": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "NFs itens",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Nfs cabeçalhos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c191939e-a08b-49b2-bbf8-22b71a2c47cb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "458023d4546c67b161e2c2c982f7bf9d53b471d3aa81c7c3a536806730630b8d"
+  },
+  "id": "unLMsaF3RCcUKc5L",
+  "tags": []
+}
